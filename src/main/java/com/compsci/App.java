@@ -30,22 +30,16 @@ public class App
                 // Start the server
                 try {
                     GameServer server = new GameServer(16333);
-                    server.start(16333);
                 } catch(IOException exc) {
                     System.out.println("An error occured");
                     System.exit(1);
                 }
-
                 break;
             case 2:
                 System.out.println("Please type in the ip adress of the host:");
                 String ip = input.next();
                 try {
                     GameClient clientSocket = new GameClient(ip, 16333);
-                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                    out.println("hello server");
-                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    System.out.println(in.readLine());
                 } catch(IOException exc) {
                     System.out.println("An error occured: " + exc.toString());
                     System.exit(1);
