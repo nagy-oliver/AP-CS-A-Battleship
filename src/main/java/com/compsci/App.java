@@ -5,83 +5,13 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.*;
 import java.io.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-
 
 public class App 
-{
-
-    public static class IPv4ValidatorRegex {
-        
-        private static final String IPV4_PATTERN =
-                "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\.(?!$)|$)){4}$";
-        
-        private static final Pattern pattern = Pattern.compile(IPV4_PATTERN);
-        
-        public static boolean isValid(final String a) {
-            Matcher matcher = pattern.matcher(a);
-            return matcher.matches();
-        }
-    }
-
-    public class GameServer {
-        private ServerSocket serverSocket;
-        private Socket clientSocket;
-        private PrintWriter out;
-        private BufferedReader in;
-    
-        public void start(int port) throws IOException  {
-
-            // Setup host
-            serverSocket = new ServerSocket(port);
-            try{
-                String addr = "";
-                Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
-                while(en.hasMoreElements()){
-                    NetworkInterface ni=(NetworkInterface) en.nextElement();
-                    Enumeration<InetAddress> ee = ni.getInetAddresses();
-                    while(ee.hasMoreElements()) {
-                        InetAddress ia= (InetAddress) ee.nextElement();
-                        String res = ia.getHostAddress();
-                        if (IPv4ValidatorRegex.isValid(res) && !ia.isLoopbackAddress()) {
-                            addr = res;
-                        }
-                    }
-                }
-                System.out.println("You are now hosting a game on [ " +  addr.trim() + " ]");
-            } catch (SocketException a) {
-
-            }
-            clientSocket = serverSocket.accept();
-
-            // Init streams
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            
-            String greeting = in.readLine();
-            if ("hello server".equals(greeting)) {
-                out.println("hello client");
-            }
-            else {
-                out.println("unrecognised greeting");
-            }
-        }
-    
-        public void stop() throws IOException {
-            in.close();
-            out.close();
-            clientSocket.close();
-            serverSocket.close();
-        }
-    }
-    
+{ 
     public static void main( String[] args )
     {
         Board test1 = new Board();
-        App instance = new App();
-
+        
         // SELECTION
         Scanner input = new Scanner(System.in);
         System.out.println("Welcome to the Battleship game. Please make a choice.");
@@ -101,7 +31,7 @@ public class App
             case 1:
                 // Start the server
                 try {
-                    GameServer server = instance.new GameServer();
+                    GameServer server = new GameServer();
                     server.start(16333);
                 } catch(IOException exc) {
                     System.exit(1);
@@ -120,6 +50,57 @@ public class App
         }
 
         input.close();
+    }
+}
+
+class GameServer {
+    private ServerSocket serverSocket;
+    private Socket clientSocket;
+    private PrintWriter out;
+    private BufferedReader in;
+
+    public void start(int port) throws IOException  {
+
+        // Setup host
+        serverSocket = new ServerSocket(port);
+        try{
+            String addr = "";
+            Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
+            while(en.hasMoreElements()){
+                NetworkInterface ni=(NetworkInterface) en.nextElement();
+                Enumeration<InetAddress> ee = ni.getInetAddresses();
+                while(ee.hasMoreElements()) {
+                    InetAddress ia= (InetAddress) ee.nextElement();
+                    String res = ia.getHostAddress();
+                    if (Utils.IPv4ValidatorRegex.isValid(res) && !ia.isLoopbackAddress()) {
+                        addr = res;
+                    }
+                }
+            }
+            System.out.println("You are now hosting a game on [ " +  addr.trim() + " ]");
+        } catch (SocketException a) {
+
+        }
+        clientSocket = serverSocket.accept();
+
+        // Init streams
+        out = new PrintWriter(clientSocket.getOutputStream(), true);
+        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        
+        String greeting = in.readLine();
+        if ("hello server".equals(greeting)) {
+            out.println("hello client");
+        }
+        else {
+            out.println("unrecognised greeting");
+        }
+    }
+
+    public void stop() throws IOException {
+        in.close();
+        out.close();
+        clientSocket.close();
+        serverSocket.close();
     }
 }
 
