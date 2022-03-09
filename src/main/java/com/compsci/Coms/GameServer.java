@@ -37,7 +37,7 @@ public class GameServer extends ServerSocket {
 
         }
 
-        clientSocket = serverSocket.accept();
+        clientSocket = accept();
 
         // Init streams
         out = new PrintWriter(clientSocket.getOutputStream(), true);
@@ -53,10 +53,10 @@ public class GameServer extends ServerSocket {
         }
     }
 
-    public void stop() throws IOException {
+    public void close() throws IOException {
         in.close();
         out.close();
         clientSocket.close();
-        serverSocket.close();
+        super.close();
     }
 }
