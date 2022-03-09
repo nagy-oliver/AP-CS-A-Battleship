@@ -1,22 +1,26 @@
 package com.compsci.Coms;
 import com.compsci.Utils;
+
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+
 import java.net.*;
 import java.io.*;
-import java.util.*;  
+import java.util.*; 
 
-public class GameServer extends ServerSocket {
+import org.slf4j.*;
+
+public class GameServer extends ServerSocket implements ILoggerFactory {
+    boolean isInitialized;
+    boolean isStarted;
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
-
+       
     public GameServer(int port) throws IOException {
         super(port);
-    }
-
-    public void start(int port) throws IOException  {
-
+        Logger logger = LoggerFactory.getLogger(GameServer.class);
+    
         // Setup host
         try{
             String addr = "";
@@ -38,20 +42,26 @@ public class GameServer extends ServerSocket {
             System.exit(1);
         }
 
+        // WAIT FOR 2-ND PLAYER TO JOIN
         clientSocket = accept();
+        System.out.println("Second player succesfully joined the game.");
 
         // Init streams
         out = new PrintWriter(clientSocket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         
-        String greeting = in.readLine();
-        System.out.println(greeting); 
-        if ("hello server".equals(greeting)) {
-            out.println("hello client");
+        // Check data transfer (order R-S)
+        if (Utils.testBundle.equals(in.readLine())) {
+            logger.info("Recognized test greeting");
         }
         else {
-            out.println("unrecognised greeting");
+            logger.info("Unrecognized test greeting");
         }
+        out.println(Utils.testBundle);
+    }
+
+    public void startGame() {
+
     }
 
     @Override
@@ -60,5 +70,11 @@ public class GameServer extends ServerSocket {
         out.close();
         clientSocket.close();
         super.close();
+    }
+
+    @Override
+    public Logger getLogger(String name) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

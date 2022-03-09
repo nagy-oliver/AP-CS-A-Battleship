@@ -11,7 +11,7 @@ public class App
     public static void main( String[] args )
     {
         //Board test1 = new Board();
-        //Config testConfig = new Config();
+        Config testConfig = new Config();
         
         // SELECTION
         Scanner input = new Scanner(System.in);
@@ -33,22 +33,16 @@ public class App
                 // Start the server
                 try {
                     GameServer server = new GameServer(16333);
-                    server.start(16333);
                 } catch(IOException exc) {
                     System.out.println("An error occured");
                     System.exit(1);
                 }
-
                 break;
             case 2:
                 System.out.println("Please type in the ip adress of the host:");
                 String ip = input.next();
                 try {
                     GameClient clientSocket = new GameClient(ip, 16333);
-                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                    out.println("hello server");
-                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    System.out.println(in.readLine());
                 } catch(IOException exc) {
                     System.out.println("An error occured: " + exc.toString());
                     System.exit(1);
@@ -85,7 +79,7 @@ class Board {
 class Config {
     public int[] size = new int[2];
     public int ships;
-    public int[] shipSizes = new int[ships];
+    public int[] shipSizes;
 
     public Config() {
         //reads own JSON and assigns instances values
@@ -98,18 +92,17 @@ class Config {
 
             JSONArray arr = (JSONArray) jsonObject.get("size");
             for(int i = 0; i<arr.toArray().length; i++) {
-                size[i] = (int) arr.toArray()[i];
-                System.out.println(size[i]);
+                size[i] = ((Long) arr.toArray()[i]).intValue();
             }
 
-            ships = (int) jsonObject.get("ships");
+            ships = ((Long) jsonObject.get("ships")).intValue();
+            shipSizes = new int[ships];
 
             arr = (JSONArray) jsonObject.get("shipSizes");
             for(int i = 0; i<arr.toArray().length; i++) {
-                shipSizes[i] = (int) arr.toArray()[i];
-                System.out.println(shipSizes[i]);
+                shipSizes[i] = ((Long) arr.toArray()[i]).intValue();
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
