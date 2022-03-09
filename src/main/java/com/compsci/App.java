@@ -52,7 +52,7 @@ public class App
                 }
                 System.out.println("You are now hosting a game on [ " +  addr.trim() + " ]");
             } catch (SocketException a) {
-
+                System.out.println("Connection error, check your internet connection");
             }
             clientSocket = serverSocket.accept();
 
@@ -104,6 +104,7 @@ public class App
                     GameServer server = instance.new GameServer();
                     server.start(16333);
                 } catch(IOException exc) {
+                    System.out.println("An error occured");
                     System.exit(1);
                 }
 
@@ -114,6 +115,7 @@ public class App
                 try {
                     Socket clientSocket = new Socket(ip, 16333);
                 } catch(IOException exc) {
+                    System.out.println("An error occured: " + exc.toString());
                     System.exit(1);
                 }
                 break;
