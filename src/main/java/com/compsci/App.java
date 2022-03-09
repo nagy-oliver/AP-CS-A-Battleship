@@ -3,12 +3,15 @@ import com.compsci.Coms.*;
 import java.util.*;  
 import java.net.*;
 import java.io.*;
+import org.json.simple.*;
+import org.json.simple.parser.*;
 
 public class App 
 { 
     public static void main( String[] args )
     {
-        Board test1 = new Board();
+        //Board test1 = new Board();
+        //Config testConfig = new Config();
         
         // SELECTION
         Scanner input = new Scanner(System.in);
@@ -64,7 +67,7 @@ class Board {
     public File opponentShips;
     public Board() {
         try {
-            myShips = new File("myships.game");
+            myShips = new File("target/myships.game");
             opponentShips = new File("target/opponentships.game");
             if(opponentShips.createNewFile()) {
                 System.out.println("Created new file: " + opponentShips.getName());
@@ -77,4 +80,48 @@ class Board {
         } 
     }
 
+}
+
+class Config {
+    public int[] size = new int[2];
+    public int ships;
+    public int[] shipSizes = new int[ships];
+
+    public Config() {
+        //reads own JSON and assigns instances values
+        JSONParser parser = new JSONParser();
+
+        try {
+            Object obj = parser.parse(new FileReader("target/config.json"));
+
+            JSONObject jsonObject =  (JSONObject) obj;
+
+            JSONArray arr = (JSONArray) jsonObject.get("size");
+            for(int i = 0; i<arr.toArray().length; i++) {
+                size[i] = (int) arr.toArray()[i];
+                System.out.println(size[i]);
+            }
+
+            ships = (int) jsonObject.get("ships");
+
+            arr = (JSONArray) jsonObject.get("shipSizes");
+            for(int i = 0; i<arr.toArray().length; i++) {
+                shipSizes[i] = (int) arr.toArray()[i];
+                System.out.println(shipSizes[i]);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+    
+    /*public boolean validate(Board myBoard) {
+        //checks whether board is corresponding to the config, otherwise exits
+
+    }*/
+
+    public boolean compareConfigs(Config clientConfig) {
+        return clientConfig.equals(this);
+    }
 }
