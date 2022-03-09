@@ -34,7 +34,8 @@ public class GameServer extends ServerSocket {
             }
             System.out.println("You are now hosting a game on [ " +  addr.trim() + " ]");
         } catch (SocketException a) {
-
+            System.out.println("Creating server failed, check connection.");
+            System.exit(1);
         }
 
         clientSocket = accept();
@@ -53,6 +54,7 @@ public class GameServer extends ServerSocket {
         }
     }
 
+    @Override
     public void close() throws IOException {
         in.close();
         out.close();
