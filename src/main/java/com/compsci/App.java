@@ -1,8 +1,6 @@
 package com.compsci;
-import org.json.*;
+import com.compsci.Coms.*;
 import java.util.*;  
-import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.*;
 import java.io.*;
 
@@ -31,7 +29,7 @@ public class App
             case 1:
                 // Start the server
                 try {
-                    GameServer server = new GameServer();
+                    GameServer server = new GameServer(16333);
                     server.start(16333);
                 } catch(IOException exc) {
                     System.out.println("An error occured");
@@ -43,7 +41,11 @@ public class App
                 System.out.println("Please type in the ip adress of the host:");
                 String ip = input.next();
                 try {
-                    Socket clientSocket = new Socket(ip, 16333);
+                    GameClient clientSocket = new GameClient(ip, 16333);
+                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                    out.println("hello server");
+                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    System.out.println(in.readLine());
                 } catch(IOException exc) {
                     System.out.println("An error occured: " + exc.toString());
                     System.exit(1);
@@ -55,56 +57,7 @@ public class App
     }
 }
 
-class GameServer {
-    private ServerSocket serverSocket;
-    private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
 
-    public void start(int port) throws IOException  {
-
-        // Setup host
-        serverSocket = new ServerSocket(port);
-        try{
-            String addr = "";
-            Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
-            while(en.hasMoreElements()){
-                NetworkInterface ni=(NetworkInterface) en.nextElement();
-                Enumeration<InetAddress> ee = ni.getInetAddresses();
-                while(ee.hasMoreElements()) {
-                    InetAddress ia= (InetAddress) ee.nextElement();
-                    String res = ia.getHostAddress();
-                    if (Utils.IPv4ValidatorRegex.isValid(res) && !ia.isLoopbackAddress()) {
-                        addr = res;
-                    }
-                }
-            }
-            System.out.println("You are now hosting a game on [ " +  addr.trim() + " ]");
-        } catch (SocketException a) {
-
-        }
-        clientSocket = serverSocket.accept();
-
-        // Init streams
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        
-        String greeting = in.readLine();
-        if ("hello server".equals(greeting)) {
-            out.println("hello client");
-        }
-        else {
-            out.println("unrecognised greeting");
-        }
-    }
-
-    public void stop() throws IOException {
-        in.close();
-        out.close();
-        clientSocket.close();
-        serverSocket.close();
-    }
-}
 
 class Board {
     public File myShips;
