@@ -27,7 +27,7 @@ public class Board {
             }
             fileReader.close();
         } catch (Exception e) { //most likely in case of invalid dimensions of the file
-            System.out.println("Invalid game file");
+            System.out.println("Invalid game file, failed to load the file");
             System.exit(1);
         }
     }
