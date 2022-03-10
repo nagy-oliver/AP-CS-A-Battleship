@@ -1,7 +1,6 @@
 package com.compsci;
 import com.compsci.Coms.*;
-import java.util.*;  
-import java.net.*;
+import java.util.*;
 import java.io.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
@@ -12,6 +11,8 @@ public class App
     {
         //Board test1 = new Board();
         Config testConfig = new Config();
+        int[] boardSize = {5, 5};
+        Board testBoard = new Board(boardSize);
         
         // SELECTION
         Scanner input = new Scanner(System.in);
@@ -54,35 +55,43 @@ public class App
     }
 }
 
-
-
 class Board {
-    public File myShips;
-    public File opponentShips;
-    public Board() {
+    public File myShipsFile;
+    public int[][] myShips;
+    //public File opponentShips;
+    public Board(int[] boardSize) {
+        //define myShips size:
+        myShips = new int[boardSize[1]][boardSize[0]];
+        //create a 2d array from the .game file
         try {
-            myShips = new File("target/myships.game");
-            opponentShips = new File("target/opponentships.game");
-            if(opponentShips.createNewFile()) {
-                System.out.println("Created new file: " + opponentShips.getName());
-            } else {
-                System.out.println("the file already exists");
+            myShipsFile = new File("target/myships.game");
+            Scanner fileReader = new Scanner(myShipsFile);
+            int line = 0;
+            while(fileReader.hasNextLine()) {
+                String newLine = fileReader.nextLine();
+                if(newLine.length() != boardSize[0]) {
+                    System.out.println("Invalid game file");
+                    System.exit(1);
+                }
+                for(int i = 0; i < newLine.length(); i++) {
+                    myShips[line][i] = Integer.parseInt(Character.toString(newLine.charAt(i)));
+                }
+                line++;
             }
-        } catch (IOException e) {
-            System.out.println("an error occured");
-            e.printStackTrace();
-        } 
+        } catch (Exception e) { //most likely in case of invalid dimensions of the file
+            System.out.println("Invalid game file");
+            System.exit(1);
+        }
     }
-
 }
 
 class Config {
-    public int[] size = new int[2];
+    public int[] size = new int[2]; //[width, height]
     public int ships;
     public int[] shipSizes;
 
     public Config() {
-        //reads own JSON and assigns instances values
+        //reads own JSON and assigns instance variables
         JSONParser parser = new JSONParser();
 
         try {
@@ -111,7 +120,11 @@ class Config {
     
     /*public boolean validate(Board myBoard) {
         //checks whether board is corresponding to the config, otherwise exits
+        //check size of the board:
 
+        //check number of ships:
+
+        //check the size of ships:
     }*/
 
     public boolean compareConfigs(Config clientConfig) {
