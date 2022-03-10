@@ -2,6 +2,7 @@ package com.compsci;
 import com.compsci.Coms.*;
 import java.util.*;
 import java.io.*;
+import org.apache.log4j.BasicConfigurator;
 
 public class App 
 { 
@@ -11,6 +12,7 @@ public class App
         Config testConfig = new Config();
         int[] boardSize = {5, 5};
         Board testBoard = new Board(boardSize);
+        BasicConfigurator.configure();
         
         // SELECTION
         Scanner input = new Scanner(System.in);

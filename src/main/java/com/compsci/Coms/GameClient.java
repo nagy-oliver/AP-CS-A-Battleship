@@ -3,9 +3,11 @@ import java.io.IOException;
 
 import java.net.*;
 
+import com.compsci.Config;
 import com.compsci.Utils;
 
 import java.io.*; 
+import org.slf4j.*;
 
 public class GameClient extends Socket {
     private PrintWriter out;
@@ -13,6 +15,8 @@ public class GameClient extends Socket {
 
     public GameClient(String host, int port) throws UnknownHostException, IOException {
         super(host, port);
+        Logger logger = LoggerFactory.getLogger(GameClient.class);
+        
 
         // Init streams
         PrintWriter out = new PrintWriter(getOutputStream(), true);
@@ -21,10 +25,17 @@ public class GameClient extends Socket {
         // Check data transfer  (order S-R)
         out.println(Utils.testBundle);
         if (Utils.testBundle.equals(in.readLine())) {
-            System.out.println("Recognized test greeting");
+            logger.debug("Recognized test greeting");
         }
         else {
-            System.out.println("Unrecognized test greeting");
+            logger.debug("Unrecognized test greeting");
         }
+
+        logger.info("Successfully connected to server");
+
+        // Send config for validation
+        ObjectOutputStream oos = new ObjectOutputStream(getOutputStream());
+        oos.writeObject(new Config());
+
     }
 }

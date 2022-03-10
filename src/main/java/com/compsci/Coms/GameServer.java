@@ -1,4 +1,5 @@
 package com.compsci.Coms;
+import com.compsci.Config;
 import com.compsci.Utils;
 
 import java.net.InetAddress;
@@ -10,7 +11,7 @@ import java.util.*;
 
 import org.slf4j.*;
 
-public class GameServer extends ServerSocket implements ILoggerFactory {
+public class GameServer extends ServerSocket {
     boolean isInitialized;
     boolean isStarted;
     private Socket clientSocket;
@@ -36,15 +37,15 @@ public class GameServer extends ServerSocket implements ILoggerFactory {
                     }
                 }
             }
-            System.out.println("You are now hosting a game on [ " +  addr.trim() + " ]");
+            logger.info("You are now hosting a game on [ " +  addr.trim() + " ]");
         } catch (SocketException a) {
-            System.out.println("Creating server failed, check connection.");
+            logger.error("Creating server failed, check connection.");
             System.exit(1);
         }
 
         // WAIT FOR 2-ND PLAYER TO JOIN
         clientSocket = accept();
-        System.out.println("Second player succesfully joined the game.");
+        logger.info("Second player succesfully joined the game.");
 
         // Init streams
         out = new PrintWriter(clientSocket.getOutputStream(), true);
@@ -52,12 +53,20 @@ public class GameServer extends ServerSocket implements ILoggerFactory {
         
         // Check data transfer (order R-S)
         if (Utils.testBundle.equals(in.readLine())) {
-            logger.info("Recognized test greeting");
+            logger.debug("Recognized test greeting");
         }
         else {
-            logger.info("Unrecognized test greeting");
+            logger.debug("Unrecognized test greeting");
         }
         out.println(Utils.testBundle);
+
+        // Compatibility check
+        ObjectInputStream is = new ObjectInputStream(clientSocket.getInputStream());
+        try {
+            Config returnMessage = (Config) is.readObject();
+        } catch(ClassNotFoundException exc) {
+            
+        }
     }
 
     public void startGame() {
@@ -70,11 +79,5 @@ public class GameServer extends ServerSocket implements ILoggerFactory {
         out.close();
         clientSocket.close();
         super.close();
-    }
-
-    @Override
-    public Logger getLogger(String name) {
-        // TODO Auto-generated method stub
-        return null;
     }
 }
