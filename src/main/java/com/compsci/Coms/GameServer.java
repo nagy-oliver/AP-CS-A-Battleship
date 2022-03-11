@@ -1,27 +1,73 @@
 package com.compsci.Coms;
+import com.compsci.Board;
 import com.compsci.Config;
 import com.compsci.Utils;
-
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-
 import java.net.*;
 import java.io.*;
 import java.util.*; 
-
 import org.slf4j.*;
 
 public class GameServer extends ServerSocket {
     boolean isInitialized;
+    boolean isValidated;
     boolean isStarted;
+    Board gameState;
+
+    // client
     private Socket clientSocket;
+    private Config localConfig;
+    private Board placement;
+
+    // com
     private PrintWriter out;
     private BufferedReader in;
+    ObjectInputStream is;
+    
+
+    // classwide logger
+    Logger logger;
        
     public GameServer(int port) throws IOException {
         super(port);
-        Logger logger = LoggerFactory.getLogger(GameServer.class);
-    
+        logger = LoggerFactory.getLogger(GameServer.class);
+
+        TransmissionInit();
+        Validate();
+
+        logger.debug("All initial setup completed and ready");
+        isInitialized = true; // init flag trigger
+
+        if (isValidated) Greet();
+        else System.out.println("Config check or board validation failed. Cannot start; (You can use command 'retry' to retry)");
+
+        EnterCommandLoop();
+    }
+
+    void Validate() throws IOException {
+        // (re)generate
+        localConfig = new Config();
+        placement = new Board(localConfig.size);
+
+        // Compatibility check
+        try {
+            out.println("REQ_CONF");
+            Config returnMessage = (Config) is.readObject();
+            is.reset();
+            if (returnMessage.compareConfigs(localConfig) ) {
+                isValidated = true;
+                System.out.println("Validated");
+            } else {
+                System.out.println("Your configurations do not match! ");
+                out.println("INV_CONF");
+            }
+        } catch(ClassNotFoundException exc) {
+            System.out.println("An error occored with config transfer, was it loaded properly?");
+        }
+    }
+
+    void TransmissionInit() throws IOException {
         // Setup host
         try{
             String addr = "";
@@ -59,18 +105,70 @@ public class GameServer extends ServerSocket {
             logger.debug("Unrecognized test greeting");
         }
         out.println(Utils.testBundle);
+    }
 
-        // Compatibility check
-        ObjectInputStream is = new ObjectInputStream(clientSocket.getInputStream());
-        try {
-            Config returnMessage = (Config) is.readObject();
-        } catch(ClassNotFoundException exc) {
+    void EnterCommandLoop() throws IOException {
+        // Enter command loop
+        Scanner input = new Scanner(System.in);
+        while(true) {
+            System.out.print(">: ");
             
+            String data = input.nextLine();
+            if (data == null) continue;
+            String[] splitCommand = data.split(" ");
+
+            // Handle data logic 
+            switch(splitCommand[0]) {
+                case "move":
+                    break;
+                case "start":
+                    break;
+                case "retry":
+                    Validate();
+                    if (isValidated) Greet();
+                    break;
+                case "exit":
+                    input.close();
+                    out.println("");
+                    System.out.println("Goodbye");
+                    System.exit(1);
+                    break;
+
+            }
         }
     }
 
-    public void startGame() {
+    void EnterDataLoop() {
 
+        // After initial check enter permanent reciever thread
+        Thread commands = new Thread() {
+            public void run() {
+                while(true) {
+                    try {
+                        String data = in.readLine();
+                        if (data.equals(null)) continue;
+
+                        // Handle data logic 
+                        switch(data) {
+
+                        }
+
+                        System.out.println(data);
+                    } catch (IOException e) { }
+                }
+            }
+        };
+        commands.start(); 
+    }
+
+    void Greet() {
+        System.out.println("======================================================");
+        System.out.println("||                   Game Is Ready                  ||");
+        System.out.println("======================================================");
+        System.out.println("When ready please start the game with 'start' command:");
+
+        // Receive
+        EnterDataLoop();
     }
 
     @Override

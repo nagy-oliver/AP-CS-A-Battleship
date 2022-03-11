@@ -35,7 +35,8 @@ public class App
                 try {
                     GameServer server = new GameServer(16333);
                 } catch(IOException exc) {
-                    System.out.println("An error occured");
+                    System.out.println("An error occured: " + exc.toString());
+                    exc.printStackTrace();
                     System.exit(1);
                 }
                 break;
@@ -46,11 +47,11 @@ public class App
                     GameClient clientSocket = new GameClient(ip, 16333);
                 } catch(IOException exc) {
                     System.out.println("An error occured: " + exc.toString());
+                    exc.printStackTrace();
                     System.exit(1);
                 }
                 break;
         }
-
         input.close();
     }
 }

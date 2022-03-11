@@ -4,7 +4,8 @@ import java.io.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
-public class Config {
+
+public class Config implements Serializable {
     public int[] size = new int[2]; //[width, height]
     public int ships;
     public int[] shipSizes;
@@ -83,5 +84,19 @@ public class Config {
 
     public boolean compareConfigs(Config clientConfig) {
         return clientConfig.equals(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Config)) return false;
+    
+        Config comparedConf = (Config) o;
+    
+        if (size != comparedConf.size) return false;
+        if (ships != comparedConf.ships) return false;
+        if (shipSizes != comparedConf.shipSizes) return false;
+    
+        return true;
     }
 }

@@ -12,15 +12,18 @@ import org.slf4j.*;
 public class GameClient extends Socket {
     private PrintWriter out;
     private BufferedReader in;
+    ObjectOutputStream oos;
+    // Classwide logger
+    Logger logger;
 
     public GameClient(String host, int port) throws UnknownHostException, IOException {
         super(host, port);
-        Logger logger = LoggerFactory.getLogger(GameClient.class);
+        logger = LoggerFactory.getLogger(GameClient.class);
         
 
         // Init streams
-        PrintWriter out = new PrintWriter(getOutputStream(), true);
-        BufferedReader in = new BufferedReader(new InputStreamReader(getInputStream()));
+        out = new PrintWriter(getOutputStream(), true);
+        in = new BufferedReader(new InputStreamReader(getInputStream()));
         
         // Check data transfer  (order S-R)
         out.println(Utils.testBundle);
@@ -34,8 +37,31 @@ public class GameClient extends Socket {
         logger.info("Successfully connected to server");
 
         // Send config for validation
-        ObjectOutputStream oos = new ObjectOutputStream(getOutputStream());
+        oos = new ObjectOutputStream(getOutputStream());
         oos.writeObject(new Config());
+        oos.flush();
 
+        // After initial check enter permanent reciever thread
+        Thread commands = new Thread() {
+            public void run() {
+                while(true) {
+                    try {
+                        String data = in.readLine();
+                        if (data == null) continue;
+                        logger.debug(data);
+                        String[] splitPacket = data.split(" ");
+
+                        switch(splitPacket[0]) {
+                            case "REQ_CONF":
+                                oos.writeObject(new Config());
+                                oos.flush();
+                                break;
+                        }
+
+                    } catch (IOException e) { }
+                }
+            }
+        };
+        commands.start(); 
     }
 }
