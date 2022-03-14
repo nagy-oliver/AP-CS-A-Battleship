@@ -17,6 +17,7 @@ public class GameServer extends ServerSocket {
 
     // client
     private Socket clientSocket;
+    private Socket clientDataTransfer;
     private Config localConfig;
     private Board placementServer;
     private Board placementClient;
@@ -24,7 +25,7 @@ public class GameServer extends ServerSocket {
     // com
     private PrintWriter out;
     private BufferedReader in;
-    ObjectInputStream is;
+    private ObjectInputStream is;
 
     // game
     public Game serverPlayer;
@@ -58,16 +59,29 @@ public class GameServer extends ServerSocket {
         // Compatibility check
         try {
             out.println("REQ_CONF");
-            Config returnMessage = (Config) is.readObject();
-            is.reset();
-            if (returnMessage.compareConfigs(localConfig) ) {
-                isValidated = true;
-                System.out.println("Validated");
+            Config returnConfig = (Config) is.readUnshared();
+            if (returnConfig.compareConfigs(localConfig) ) {
+                // After conf loaded, check board 
+                out.println("REQ_BOARD");
+                Board returnBoard = (Board) is.readUnshared();
+                if (localConfig.validate(returnBoard)) {
+                    if (localConfig.validate(placementServer)) {
+                        isValidated = true;
+                        System.out.println("Validated");
+                    } else {
+                        System.out.println("Your board doesnt match the config requirements!");
+                        out.println("INV_SBOARD");
+                    }
+                } else {
+                    System.out.println("Opponents board doesnt match the config requirements!");
+                    out.println("INV_BOARD");
+                }
             } else {
                 System.out.println("Your configurations do not match! ");
                 out.println("INV_CONF");
             }
-        } catch(ClassNotFoundException exc) {
+            
+        } catch (EOFException e) { } catch(ClassNotFoundException exc) {
             System.out.println("An error occored with config transfer, was it loaded properly?");
         }
     }
@@ -110,6 +124,10 @@ public class GameServer extends ServerSocket {
             logger.debug("Unrecognized test greeting");
         }
         out.println(Utils.testBundle);
+
+        clientDataTransfer = accept();
+        logger.debug("Second player datastream joined the game.");
+        is = new ObjectInputStream(clientDataTransfer.getInputStream());
     }
 
     void EnterCommandLoop() throws IOException {
@@ -129,13 +147,16 @@ public class GameServer extends ServerSocket {
                 case "start":
                     serverPlayer = new Game(localConfig, placementServer);
                     clientPlayer = new Game(localConfig, placementClient);
+                    break;
+                case "finish":
+                    break;
                 case "retry":
                     Validate();
                     if (isValidated) Greet();
                     break;
                 case "exit":
                     input.close();
-                    out.println("");
+                    out.println("TERM 1");
                     System.out.println("Goodbye");
                     System.exit(1);
                     break;

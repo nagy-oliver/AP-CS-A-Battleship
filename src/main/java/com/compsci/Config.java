@@ -156,10 +156,12 @@ public class Config implements Serializable {
     
         Config comparedConf = (Config) o;
     
-        if (size != comparedConf.size) return false;
         if (ships != comparedConf.ships) return false;
-        if (shipSizes != comparedConf.shipSizes) return false;
-    
+        if (size[0] != comparedConf.size[0] && size[1] != comparedConf.size[1]) return false;
+        for (int i = 0; i < ships; i++) {
+            if (shipSizes[i] != comparedConf.shipSizes[i]) return false;
+        }
+        
         return true;
     }
 }
