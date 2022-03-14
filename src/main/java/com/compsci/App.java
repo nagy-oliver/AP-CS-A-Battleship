@@ -13,8 +13,16 @@ public class App
         Board testBoard = new Board(boardSize);
         Config testConfig = new Config();
         System.out.println(testConfig.validate(testBoard));
-        Config test2 = new Config();
-        System.out.println(testConfig.compareConfigs(test2));
+        // System.out.println(testConfig.validate(testBoard));
+        // Config test2 = new Config();
+        // System.out.println(testConfig.compareConfigs(test2));
+        // System.out.println(testBoard);
+        // Game testGame = new Game(testConfig, testBoard);
+        // System.out.println(testGame.move(0, 0));
+        // System.out.println(testGame.board);
+        // System.out.println(testGame.move(0, 1));
+        // System.out.println(testGame.move(0, 2));
+        // System.out.println(testGame.board);        
         
         BasicConfigurator.configure();
         

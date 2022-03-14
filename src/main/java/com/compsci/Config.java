@@ -9,6 +9,8 @@ public class Config implements Serializable {
     public int[] size = new int[2]; //[width, height]
     public int ships;
     public int[] shipSizes;
+    //needed for Game class:
+    public int[] unsortedShipSizes;
 
     public Config() {
         //reads own JSON and assigns instance variables
@@ -26,6 +28,7 @@ public class Config implements Serializable {
 
             ships = ((Long) jsonObject.get("ships")).intValue();
             shipSizes = new int[ships];
+            unsortedShipSizes = new int[ships];
 
             arr = (JSONArray) jsonObject.get("shipSizes");
             for(int i = 0; i<arr.toArray().length; i++) {
@@ -70,6 +73,10 @@ public class Config implements Serializable {
             totalShips += i;
         }
         if(totalShips != totalShipsFound) return false; //exchange for return false after testing
+
+        for(int i = 0; i < shipsFound.size(); i++) {
+            unsortedShipSizes[i] = shipsFound.get(i);
+        }
 
         Collections.sort(shipsFound);
         ArrayList<Integer> shipSizesList = new ArrayList<>();

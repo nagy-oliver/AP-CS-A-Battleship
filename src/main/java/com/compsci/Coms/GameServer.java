@@ -18,12 +18,17 @@ public class GameServer extends ServerSocket {
     // client
     private Socket clientSocket;
     private Config localConfig;
-    private Board placement;
+    private Board placementServer;
+    private Board placementClient;
 
     // com
     private PrintWriter out;
     private BufferedReader in;
     ObjectInputStream is;
+
+    // game
+    public Game serverPlayer;
+    public Game clientPlayer;
     
 
     // classwide logger
@@ -48,7 +53,7 @@ public class GameServer extends ServerSocket {
     void Validate() throws IOException {
         // (re)generate
         localConfig = new Config();
-        placement = new Board(localConfig.size);
+        placementServer = new Board(localConfig.size);
 
         // Compatibility check
         try {
@@ -122,7 +127,8 @@ public class GameServer extends ServerSocket {
                 case "move":
                     break;
                 case "start":
-                    break;
+                    serverPlayer = new Game(localConfig, placementServer);
+                    clientPlayer = new Game(localConfig, placementClient);
                 case "retry":
                     Validate();
                     if (isValidated) Greet();
@@ -177,5 +183,42 @@ public class GameServer extends ServerSocket {
         out.close();
         clientSocket.close();
         super.close();
+    }
+}
+
+class Game {
+    Config config;
+    Board board; //either server board or client board
+    int[] amountHit;
+    public Game(Config config, Board board) {
+        this.config = config;
+        this.board = board;
+        amountHit = new int[config.ships];
+    }
+
+    public int move(int x, int y) {
+        if(board.displayShips[y][x] == "·") {
+            if(board.myShips[y][x] == 0) {
+                board.displayShips[y][x] = "*";
+                return 0; //miss
+            } else {
+                if(++amountHit[board.myShips[y][x]-1] == config.unsortedShipSizes[board.myShips[y][x]-1]) {
+                    //change every field on the displayship to sunk:
+                    for(int i = 0; i < board.displayShips.length; i++) {
+                        for(int j = 0; j < board.displayShips[i].length; j++) {
+                            if(board.myShips[i][j] == board.myShips[y][x]) {
+                                board.displayShips[i][j] = "█";
+                            }
+                        }
+                    }
+                    return 2;
+                } else {
+                    board.displayShips[y][x] = "X";
+                    return 1;
+                }
+            }
+        } else {
+            return -1;
+        }
     }
 }
