@@ -9,9 +9,11 @@ public class App
     public static void main( String[] args )
     {
         //Board test1 = new Board();
-        Config testConfig = new Config();
-        int[] boardSize = {5, 5};
+        int[] boardSize = {10, 10};
         Board testBoard = new Board(boardSize);
+        Config testConfig = new Config();
+        System.out.println(testConfig.validate(testBoard));
+        
         BasicConfigurator.configure();
         
         // SELECTION

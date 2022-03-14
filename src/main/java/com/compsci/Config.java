@@ -31,7 +31,6 @@ public class Config implements Serializable {
             for(int i = 0; i<arr.toArray().length; i++) {
                 shipSizes[i] = ((Long) arr.toArray()[i]).intValue();
             } Arrays.sort(shipSizes);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -43,27 +42,49 @@ public class Config implements Serializable {
         //check size of the board:
         if(size[0] != myBoard.myShips[0].length || size[1] != myBoard.myShips.length) return false;
         //check number of ships:
-        int findShipNum = 1;
-        while(contains(findShipNum, myBoard)) {
+        int findShipNum = 0;
+        while(contains(findShipNum+1, myBoard)) {
             findShipNum++;
         }
         if(containsLarger(findShipNum, myBoard) || findShipNum != ships) return false;
-        //check the size of ships:
-        int[] shipsFound = new int[ships];
-            //
+        //check the size of ships by comparing 2 sorted arrays:
+        ArrayList<Integer> shipsFound = new ArrayList<>();
+        int totalShipsFound = 0;
+        int temp = 0;
+        for(int num = 1; num <= ships; num++) {
+            outerloop:
+            for(int i = 0; i < myBoard.myShips.length; i++) {
+                for(int j = 0; j < myBoard.myShips[i].length; j++) {
+                    if(myBoard.myShips[i][j] == num) {
+                        temp = findShipSize(i, j, myBoard, 1, num);
+                        shipsFound.add(temp);
+                        break outerloop;
+                    }
+                }
+            }
+            totalShipsFound += temp;
+        }
 
-        Arrays.sort(shipsFound);
+        int totalShips = 0;
+        for(int i : shipSizes) {
+            totalShips += i;
+        }
+        if(totalShips != totalShipsFound) return false; //exchange for return false after testing
 
+        Collections.sort(shipsFound);
+        ArrayList<Integer> shipSizesList = new ArrayList<>();
+        for(int i : shipSizes) {
+            shipSizesList.add(i);
+        }
+        if(!shipsFound.equals(shipSizesList)) return false; //exchange for return false after testing
+        //if everything was satisfied:
         return true;
     }
 
     boolean contains(int num, Board myBoard) {
         for(int i = 0; i < myBoard.myShips.length; i++) {
             for(int j = 0; j < myBoard.myShips[i].length; j++) {
-                if(myBoard.myShips[i][j] == num) {
-                    //findShipSize(j, i);
-                    return true;
-                }
+                if(myBoard.myShips[i][j] == num) return true;
             }
         }
         return false;
@@ -78,9 +99,44 @@ public class Config implements Serializable {
         }
         return false;
     }
-    /*int findShipSize(int x, int y) {
+
+    int findShipSize(int y, int x, Board myBoard, int shipSize, int shipNum) {
         //recursive function to find the ship size
-    }*/
+        try {
+            if(myBoard.myShips[y+1][x] == shipNum) {
+                return findShipSize(y+1, x, myBoard, shipSize+1, shipNum, 0);
+            }
+        } catch (IndexOutOfBoundsException e) {
+            try {
+                if(myBoard.myShips[y][x+1] == shipNum) {
+                    return findShipSize(y, x+1, myBoard, shipSize+1, shipNum, 1);
+                }
+            } catch (IndexOutOfBoundsException f) {
+                return shipSize;
+            }
+        } try {
+            if(myBoard.myShips[y][x+1] == shipNum) {
+                return findShipSize(y, x+1, myBoard, shipSize+1, shipNum, 1);
+            }
+        } catch (IndexOutOfBoundsException e) {
+            return shipSize;
+        }
+        return shipSize;
+    }
+    int findShipSize(int y, int x, Board myBoard, int shipSize, int shipNum, int dir) { //dir: 0 = vertical, 1 = horizontal
+        //recursive function to find the ship size
+        try {
+            if(dir == 0 && myBoard.myShips[y+1][x] == shipNum) {
+                return findShipSize(y+1, x, myBoard, shipSize+1, shipNum, 0);
+            } else if(dir == 1 && myBoard.myShips[y][x+1] == shipNum) {
+                return findShipSize(y, x+1, myBoard, shipSize+1, shipNum, 1);
+            } else {
+                return shipSize;
+            }
+        } catch (IndexOutOfBoundsException e) {
+            return shipSize;
+        }
+    }
 
     public boolean compareConfigs(Config clientConfig) {
         return clientConfig.equals(this);
