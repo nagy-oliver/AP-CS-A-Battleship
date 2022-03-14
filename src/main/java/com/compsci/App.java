@@ -13,6 +13,8 @@ public class App
         Board testBoard = new Board(boardSize);
         Config testConfig = new Config();
         System.out.println(testConfig.validate(testBoard));
+        Config test2 = new Config();
+        System.out.println(testConfig.compareConfigs(test2));
         
         BasicConfigurator.configure();
         
