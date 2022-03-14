@@ -2,7 +2,7 @@ package com.compsci;
 import java.util.*;
 import java.io.*;
 
-public class Board {
+public class Board implements Serializable {
     public File myShipsFile;
     public int[][] myShips;
     //public File opponentShips;

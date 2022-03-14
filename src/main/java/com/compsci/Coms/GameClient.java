@@ -3,6 +3,7 @@ import java.io.IOException;
 
 import java.net.*;
 
+import com.compsci.Board;
 import com.compsci.Config;
 import com.compsci.Utils;
 
@@ -10,16 +11,28 @@ import java.io.*;
 import org.slf4j.*;
 
 public class GameClient extends Socket {
+    // coms
     private PrintWriter out;
     private BufferedReader in;
-    ObjectOutputStream oos;
+    private ObjectOutputStream oos;
+
+    // conn
+    private Socket dataTransfer;
+
+    // data
+    private Config localConfig;
+    private Board localPlacement;
+
     // Classwide logger
     Logger logger;
 
-    public GameClient(String host, int port) throws UnknownHostException, IOException {
+    public GameClient(String host, int port) throws UnknownHostException, IOException, InterruptedException {
         super(host, port);
         logger = LoggerFactory.getLogger(GameClient.class);
-        
+
+        // init data
+        localConfig = new Config();
+        localPlacement = new Board(localConfig.size);
 
         // Init streams
         out = new PrintWriter(getOutputStream(), true);
@@ -36,10 +49,10 @@ public class GameClient extends Socket {
 
         logger.info("Successfully connected to server");
 
+        dataTransfer = new Socket(host, port);
+
         // Send config for validation
-        oos = new ObjectOutputStream(getOutputStream());
-        oos.writeObject(new Config());
-        oos.flush();
+        oos = new ObjectOutputStream(dataTransfer.getOutputStream());
 
         // After initial check enter permanent reciever thread
         Thread commands = new Thread() {
@@ -53,13 +66,28 @@ public class GameClient extends Socket {
 
                         switch(splitPacket[0]) {
                             case "REQ_CONF":
-                                oos.writeObject(new Config());
+                                localConfig = new Config();
+                                oos.writeUnshared(localConfig);
                                 oos.flush();
                                 break;
+                            case "REQ_BOARD":
+                                localPlacement = new Board(localConfig.size);
+                                oos.writeUnshared(localPlacement);
+                                oos.flush();
+                                break;
+                            case "TERM":
+                                System.exit(Integer.parseInt(splitPacket[1]));
+                                break;
+                            case "INV_SBOARD":
+                                System.out.println("Opponents board doesnt match the config requirements!");
+                                break;
+                            case "INV_BOARD":
+                                System.out.println("Your board doesnt match the config requirements!");
+                                break;
                         }
-
-                    } catch (IOException e) { }
+                    } catch (EOFException e) { } catch (IOException e) { } 
                 }
+
             }
         };
         commands.start(); 

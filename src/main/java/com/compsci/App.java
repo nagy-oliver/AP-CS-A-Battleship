@@ -6,12 +6,16 @@ import org.apache.log4j.BasicConfigurator;
 
 public class App 
 { 
+    static GameServer server;
+    static GameClient client;
+
     public static void main( String[] args )
     {
         //Board test1 = new Board();
-        int[] boardSize = {10, 10};
-        Board testBoard = new Board(boardSize);
         Config testConfig = new Config();
+        int[] boardSize = testConfig.size;
+        Board testBoard = new Board(boardSize);
+        
         System.out.println(testConfig.validate(testBoard));
         
         BasicConfigurator.configure();
@@ -27,15 +31,14 @@ public class App
         }
 
         // Clear 
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+        Utils.Clear();
 
         // SOCKET INIT
         switch(choice) {
             case 1:
                 // Start the server
                 try {
-                    GameServer server = new GameServer(16333);
+                    server = new GameServer(16333);
                 } catch(IOException exc) {
                     System.out.println("An error occured: " + exc.toString());
                     exc.printStackTrace();
@@ -46,12 +49,12 @@ public class App
                 System.out.println("Please type in the ip adress of the host:");
                 String ip = input.next();
                 try {
-                    GameClient clientSocket = new GameClient(ip, 16333);
+                    client = new GameClient(ip, 16333);
                 } catch(IOException exc) {
                     System.out.println("An error occured: " + exc.toString());
                     exc.printStackTrace();
                     System.exit(1);
-                }
+                } catch (InterruptedException e) {}
                 break;
         }
         input.close();
