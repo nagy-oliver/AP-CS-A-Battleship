@@ -26,6 +26,7 @@ public class GameServer extends ServerSocket {
     private PrintWriter out;
     private BufferedReader in;
     private ObjectInputStream is;
+    private ObjectOutputStream os;
 
     // game
     public Game serverPlayer;
@@ -129,6 +130,7 @@ public class GameServer extends ServerSocket {
         clientDataTransfer = accept();
         logger.debug("Second player datastream joined the game.");
         is = new ObjectInputStream(clientDataTransfer.getInputStream());
+        os = new ObjectOutputStream(clientDataTransfer.getOutputStream());
     }
 
     void EnterCommandLoop() throws IOException {
@@ -183,10 +185,13 @@ public class GameServer extends ServerSocket {
                     System.out.println("Starting game! Random selected player to start: " + move + " (0-Server, 1-Client)");
                     serverPlayer = new Game(localConfig, placementServer);
                     clientPlayer = new Game(localConfig, placementClient);
+
+                    // State management
                     switch(move) {
-                        case 0: System.out.println(serverPlayer.board.toString()); break;
-                        case 1: System.out.println(clientPlayer.board.toString()); break;
+                        case 0: System.out.println(serverPlayer.board.toString()); os.writeUnshared(serverPlayer.board); break;
+                        case 1: System.out.println(clientPlayer.board.toString()); os.writeUnshared(clientPlayer.board); break;
                     }
+                    
                     break;
                 case "finish":
                     break;
@@ -250,9 +255,11 @@ public class GameServer extends ServerSocket {
                                     System.out.println("It is opponent's turn now. Wait...");
                                 }
                                 break;
+                            case "GET_MOVE":
+                                out.println(); // Drop command observer (if needed, else no effect)
+                                out.println(move);
+                                break;
                         }
-
-                        System.out.println(data);
                     } catch (IOException e) { }
                 }
             }
