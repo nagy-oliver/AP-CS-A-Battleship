@@ -64,8 +64,8 @@ public class GameServer extends ServerSocket {
             if (returnConfig.compareConfigs(localConfig) ) {
                 // After conf loaded, check board 
                 out.println("REQ_BOARD");
-                Board returnBoard = (Board) is.readUnshared();
-                if (localConfig.validate(returnBoard)) {
+                placementClient = (Board) is.readUnshared();
+                if (localConfig.validate(placementClient)) {
                     if (localConfig.validate(placementServer)) {
                         isValidated = true;
                         System.out.println("Validated");
