@@ -30,6 +30,7 @@ public class GameServer extends ServerSocket {
     // game
     public Game serverPlayer;
     public Game clientPlayer;
+    public int move = 0;
     
 
     // classwide logger
@@ -173,8 +174,16 @@ public class GameServer extends ServerSocket {
                     }
                     break;
                 case "start":
+                    Utils.Clear();
+                    move = (int) Math.round(Math.random());
+                    out.println("START " + move);
+                    System.out.println("Starting game! Random selected player to start: " + move + " (0-Server, 1-Client)");
                     serverPlayer = new Game(localConfig, placementServer);
                     clientPlayer = new Game(localConfig, placementClient);
+                    switch(move) {
+                        case 0: System.out.println(serverPlayer.board.toString()); break;
+                        case 1: System.out.println(clientPlayer.board.toString()); break;
+                    }
                     break;
                 case "finish":
                     break;
@@ -237,7 +246,7 @@ public class GameServer extends ServerSocket {
 
 class Game {
     Config config;
-    Board board; //either server board or client board
+    public Board board; //either server board or client board
     int[] amountHit;
     public Game(Config config, Board board) {
         this.config = config;

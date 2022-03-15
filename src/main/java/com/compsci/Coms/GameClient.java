@@ -2,6 +2,7 @@ package com.compsci.Coms;
 import java.io.IOException;
 
 import java.net.*;
+import java.util.*;
 
 import com.compsci.Board;
 import com.compsci.Config;
@@ -22,6 +23,7 @@ public class GameClient extends Socket {
     // data
     private Config localConfig;
     private Board localPlacement;
+    public boolean started; 
 
     // Classwide logger
     Logger logger;
@@ -65,6 +67,11 @@ public class GameClient extends Socket {
                         String[] splitPacket = data.split(" ");
 
                         switch(splitPacket[0]) {
+                            case "START":
+                                started = true;
+                                Utils.Clear();
+                                System.out.println("Starting game! Random selected player to start: " + splitPacket[1] + " (0-Server, 1-Client)");
+
                             case "REQ_CONF":
                                 localConfig = new Config();
                                 oos.writeUnshared(localConfig);
@@ -91,5 +98,26 @@ public class GameClient extends Socket {
             }
         };
         commands.start(); 
+    
+        EnterCommandLoop();
+    }
+
+    void EnterCommandLoop() throws IOException {
+        // Enter command loop
+        Scanner input = new Scanner(System.in);
+        while(true) {
+            System.out.print(">: ");
+            
+            String data = input.nextLine();
+            if (data == null) continue;
+            String[] splitCommand = data.split(" ");
+
+            // Handle data logic 
+            switch(splitCommand[0]) {
+                case "move":
+
+                    break;
+            }
+        }
     }
 }
