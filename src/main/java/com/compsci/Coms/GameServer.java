@@ -70,11 +70,11 @@ public class GameServer extends ServerSocket {
                         isValidated = true;
                         System.out.println("Validated");
                     } else {
-                        System.out.println("Your board doesnt match the config requirements!");
+                        System.out.println("Your board doesn't match the config requirements!");
                         out.println("INV_SBOARD");
                     }
                 } else {
-                    System.out.println("Opponents board doesnt match the config requirements!");
+                    System.out.println("Opponent's board doesn't match the config requirements!");
                     out.println("INV_BOARD");
                 }
             } else {
@@ -83,7 +83,7 @@ public class GameServer extends ServerSocket {
             }
             
         } catch (EOFException e) { } catch(ClassNotFoundException exc) {
-            System.out.println("An error occored with config transfer, was it loaded properly?");
+            System.out.println("An error occured with config transfer, was it loaded properly?");
         }
     }
 
@@ -172,6 +172,9 @@ public class GameServer extends ServerSocket {
                                 break;
                         }
                     }
+                    else {
+                        System.out.println("It is opponent's turn now. Wait...");
+                    }
                     break;
                 case "start":
                     Utils.Clear();
@@ -212,9 +215,41 @@ public class GameServer extends ServerSocket {
                         String data = in.readLine();
                         if (data.equals(null)) continue;
 
+                        String[] splitCommand = data.split(" ");
                         // Handle data logic 
                         switch(data) {
-
+                            case "move":
+                                if(move == 0) {
+                                    int response = clientPlayer.move(Integer.parseInt(splitCommand[1]), Integer.parseInt(splitCommand[2]));
+                                    System.out.println(clientPlayer.board);
+                                    switch (response) {
+                                        case 0:
+                                            System.out.println("You missed!");
+                                            System.out.println("It's opponents' turn now");
+                                            move = 0;
+                                            break;
+                                        case 1:
+                                            System.out.println("You hit a ship!");
+                                            System.out.println("It's your turn");
+                                            break;
+                                        case 2:
+                                            System.out.println("You sunk a ship!");
+                                            System.out.println("It's opponents' turn now");
+                                            move = 0;
+                                            break;
+                                        case -1:
+                                            System.out.println("This place was already hit!");
+                                            System.out.println("Try again");
+                                            break;
+                                        default:
+                                            System.out.println("An error occured");
+                                            System.exit(1);
+                                            break;
+                                    }
+                                } else {
+                                    System.out.println("It is opponent's turn now. Wait...");
+                                }
+                                break;
                         }
 
                         System.out.println(data);
