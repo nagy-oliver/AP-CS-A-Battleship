@@ -143,6 +143,34 @@ public class GameServer extends ServerSocket {
             // Handle data logic 
             switch(splitCommand[0]) {
                 case "move":
+                    if(move == 0) {
+                        int response = clientPlayer.move(Integer.parseInt(splitCommand[1]), Integer.parseInt(splitCommand[2]));
+                        System.out.println(clientPlayer.board);
+                        switch (response) {
+                            case 0:
+                                System.out.println("You missed!");
+                                System.out.println("It's opponents' turn now");
+                                move = 1;
+                                break;
+                            case 1:
+                                System.out.println("You hit a ship!");
+                                System.out.println("It's your turn");
+                                break;
+                            case 2:
+                                System.out.println("You sunk a ship!");
+                                System.out.println("It's opponents' turn now");
+                                move = 1;
+                                break;
+                            case -1:
+                                System.out.println("This place was already hit!");
+                                System.out.println("Try again");
+                                break;
+                            default:
+                                System.out.println("An error occured");
+                                System.exit(1);
+                                break;
+                        }
+                    }
                     break;
                 case "start":
                     serverPlayer = new Game(localConfig, placementServer);
