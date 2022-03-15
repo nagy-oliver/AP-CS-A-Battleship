@@ -1,6 +1,4 @@
 package com.compsci.Coms;
-import java.io.IOException;
-
 import java.net.*;
 import java.util.*;
 
@@ -16,6 +14,7 @@ public class GameClient extends Socket {
     private PrintWriter out;
     private BufferedReader in;
     private ObjectOutputStream oos;
+    private ObjectInputStream ois;
 
     // conn
     private Socket dataTransfer;
@@ -24,6 +23,7 @@ public class GameClient extends Socket {
     private Config localConfig;
     private Board localPlacement;
     public boolean started; 
+    int move;
 
     // Classwide logger
     Logger logger;
@@ -55,6 +55,7 @@ public class GameClient extends Socket {
 
         // Send config for validation
         oos = new ObjectOutputStream(dataTransfer.getOutputStream());
+        ois = new ObjectInputStream(dataTransfer.getInputStream());
 
         // After initial check enter permanent reciever thread
         Thread commands = new Thread() {
@@ -98,7 +99,30 @@ public class GameClient extends Socket {
             }
         };
         commands.start(); 
-    
+
+        Thread stateMonitor = new Thread() {
+            public void run() {
+                while(true) {
+                    try {
+                        Board a = (Board) ois.readUnshared();
+
+                        if (a == null) continue;
+                        
+                        out.println("GET_MOVE");
+                        move = Integer.parseInt(in.readLine());
+                       
+                        Utils.Clear();
+                        System.out.println(a.toString());
+                        System.out.print("");
+                        System.out.print(">: ");
+
+                    } catch (IOException e) { } catch (ClassNotFoundException e) { } 
+                }
+
+            }
+        };
+        stateMonitor.start();
+
         EnterCommandLoop();
     }
 
@@ -115,7 +139,13 @@ public class GameClient extends Socket {
             // Handle data logic 
             switch(splitCommand[0]) {
                 case "move":
+                    if (started) {
+                        if (move == 1) {
 
+                        } else {
+                            System.out.println("It is not your turn to play yet");
+                        }
+                    }
                     break;
             }
         }
