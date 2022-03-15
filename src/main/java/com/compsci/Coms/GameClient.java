@@ -24,6 +24,7 @@ public class GameClient extends Socket {
     private Board localPlacement;
     public boolean started; 
     int move;
+    boolean okFlag;
 
     // Classwide logger
     Logger logger;
@@ -64,7 +65,7 @@ public class GameClient extends Socket {
                     try {
                         String data = in.readLine();
                         if (data == null) continue;
-                        logger.debug(data);
+                        //logger.debug(data);
                         String[] splitPacket = data.split(" ");
 
                         switch(splitPacket[0]) {
@@ -105,7 +106,6 @@ public class GameClient extends Socket {
                 while(true) {
                     try {
                         Board a = (Board) ois.readUnshared();
-
                         if (a == null) continue;
                         
                         out.println("GET_MOVE");
@@ -146,6 +146,9 @@ public class GameClient extends Socket {
                             System.out.println("It is not your turn to play yet");
                         }
                     }
+                    break;
+                case "ok":
+                    
                     break;
             }
         }

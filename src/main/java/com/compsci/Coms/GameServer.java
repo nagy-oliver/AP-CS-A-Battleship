@@ -130,6 +130,7 @@ public class GameServer extends ServerSocket {
         clientDataTransfer = accept();
         logger.debug("Second player datastream joined the game.");
         is = new ObjectInputStream(clientDataTransfer.getInputStream());
+        os = new ObjectOutputStream(clientDataTransfer.getOutputStream());
     }
 
     void EnterCommandLoop() throws IOException {
@@ -218,10 +219,11 @@ public class GameServer extends ServerSocket {
 
                         // Handle data logic 
                         switch(data) {
-
+                            case "GET_MOVE":
+                                out.println(); // Drop command observer (if needed, else no effect)
+                                out.println(move);
+                                break;
                         }
-
-                        System.out.println(data);
                     } catch (IOException e) { }
                 }
             }
