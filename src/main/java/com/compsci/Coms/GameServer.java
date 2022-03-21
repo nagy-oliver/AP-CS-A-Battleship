@@ -31,8 +31,22 @@ public class GameServer extends ServerSocket {
     // game
     public Game serverPlayer;
     public Game clientPlayer;
-    public int move = 0;
+    public Player move = Player.SERVER;
+    private boolean okFlag;
     
+    public enum Player {
+        SERVER(0), CLIENT(1);
+    
+        private final int value;
+        private Player(int value) {
+            this.value = value;
+        }
+    
+        public int getValue() {
+            return value;
+        }
+    }
+
 
     // classwide logger
     Logger logger;
@@ -146,23 +160,26 @@ public class GameServer extends ServerSocket {
             // Handle data logic 
             switch(splitCommand[0]) {
                 case "move":
-                    if(move == 0) {
+                    if(move == Player.SERVER) {
                         int response = clientPlayer.move(Integer.parseInt(splitCommand[1]), Integer.parseInt(splitCommand[2]));
                         System.out.println(clientPlayer.board);
                         switch (response) {
                             case 0:
                                 System.out.println("You missed!");
                                 System.out.println("It's opponents' turn now");
-                                move = 1;
+                                os.writeUnshared(clientPlayer.board); // send state
+                                move = Player.CLIENT;
                                 break;
                             case 1:
                                 System.out.println("You hit a ship!");
                                 System.out.println("It's your turn");
+                                os.writeUnshared(clientPlayer.board); // send state
                                 break;
                             case 2:
                                 System.out.println("You sunk a ship!");
                                 System.out.println("It's opponents' turn now");
-                                move = 1;
+                                os.writeUnshared(clientPlayer.board); // send state
+                                move = Player.CLIENT;
                                 break;
                             case -1:
                                 System.out.println("This place was already hit!");
@@ -173,6 +190,8 @@ public class GameServer extends ServerSocket {
                                 System.exit(1);
                                 break;
                         }
+                    } else {
+                        
                     }
                     else {
                         System.out.println("It is opponent's turn now. Wait...");
@@ -180,16 +199,16 @@ public class GameServer extends ServerSocket {
                     break;
                 case "start":
                     Utils.Clear();
-                    move = (int) Math.round(Math.random());
+                    move = ((int) Math.round(Math.random()) == 0 ? Player.SERVER : Player.CLIENT);
                     out.println("START " + move);
-                    System.out.println("Starting game! Random selected player to start: " + move + " (0-Server, 1-Client)");
-                    serverPlayer = new Game(localConfig, placementServer);
-                    clientPlayer = new Game(localConfig, placementClient);
+                    System.out.println("Starting game! Random selected player to start: " + move.getValue() + " (0-Server, 1-Client)");
+                    serverPlayer = new Game(localConfig, placementClient);
+                    clientPlayer = new Game(localConfig, placementServer);
 
                     // State management
                     switch(move) {
-                        case 0: System.out.println(serverPlayer.board.toString()); os.writeUnshared(serverPlayer.board); break;
-                        case 1: System.out.println(clientPlayer.board.toString()); os.writeUnshared(clientPlayer.board); break;
+                        case SERVER: System.out.println(serverPlayer.board.toString()); os.writeUnshared(serverPlayer.board); break;
+                        case CLIENT: System.out.println(clientPlayer.board.toString()); os.writeUnshared(clientPlayer.board); break;
                     }
                     
                     break;
@@ -213,7 +232,7 @@ public class GameServer extends ServerSocket {
     void EnterDataLoop() {
 
         // After initial check enter permanent reciever thread
-        Thread commands = new Thread() {
+        Thread data = new Thread() {
             public void run() {
                 while(true) {
                     try {
@@ -267,7 +286,7 @@ public class GameServer extends ServerSocket {
                 }
             }
         };
-        commands.start(); 
+        data.start(); 
     }
 
     void Greet() {

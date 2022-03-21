@@ -73,7 +73,7 @@ public class GameClient extends Socket {
                                 started = true;
                                 Utils.Clear();
                                 System.out.println("Starting game! Random selected player to start: " + splitPacket[1] + " (0-Server, 1-Client)");
-
+                                okFlag = true;
                             case "REQ_CONF":
                                 localConfig = new Config();
                                 oos.writeUnshared(localConfig);
@@ -108,14 +108,8 @@ public class GameClient extends Socket {
                         Board a = (Board) ois.readUnshared();
                         if (a == null) continue;
                         
-                        out.println("GET_MOVE");
-                        move = Integer.parseInt(in.readLine());
-                       
-                        Utils.Clear();
-                        System.out.println(a.toString());
-                        System.out.print("");
-                        System.out.print(">: ");
-
+                        // logic
+                     
                     } catch (IOException e) { } catch (ClassNotFoundException e) { } 
                 }
 
@@ -141,14 +135,15 @@ public class GameClient extends Socket {
                 case "move":
                     if (started) {
                         if (move == 1) {
-
+                            out.println(data); // relay
                         } else {
                             System.out.println("It is not your turn to play yet");
                         }
                     }
                     break;
                 case "ok":
-                    
+                    okFlag = true;
+                    Utils.Clear();
                     break;
             }
         }
