@@ -246,6 +246,9 @@ public class GameServer extends ServerSocket {
                                             System.out.println("This place was already hit!");
                                             System.out.println("Try again");
                                             break;
+                                        case -2:
+                                            System.out.println("The coordinates entered are not valid!");
+                                            System.out.println("Try again");
                                         default:
                                             System.out.println("An error occured");
                                             System.exit(1);
@@ -297,28 +300,32 @@ class Game {
     }
 
     public int move(int x, int y) {
-        if(board.displayShips[y][x] == "·") {
-            if(board.myShips[y][x] == 0) {
-                board.displayShips[y][x] = "*";
-                return 0; //miss
-            } else {
-                if(++amountHit[board.myShips[y][x]-1] == config.unsortedShipSizes[board.myShips[y][x]-1]) {
-                    //change every field on the displayship to sunk:
-                    for(int i = 0; i < board.displayShips.length; i++) {
-                        for(int j = 0; j < board.displayShips[i].length; j++) {
-                            if(board.myShips[i][j] == board.myShips[y][x]) {
-                                board.displayShips[i][j] = "█";
+        try {
+            if(board.displayShips[y][x] == "·") {
+                if(board.myShips[y][x] == 0) {
+                    board.displayShips[y][x] = "*";
+                    return 0; //miss
+                } else {
+                    if(++amountHit[board.myShips[y][x]-1] == config.unsortedShipSizes[board.myShips[y][x]-1]) {
+                        //change every field on the displayship to sunk:
+                        for(int i = 0; i < board.displayShips.length; i++) {
+                            for(int j = 0; j < board.displayShips[i].length; j++) {
+                                if(board.myShips[i][j] == board.myShips[y][x]) {
+                                    board.displayShips[i][j] = "█";
+                                }
                             }
                         }
+                        return 2; //sunk
+                    } else {
+                        board.displayShips[y][x] = "X";
+                        return 1; //hit
                     }
-                    return 2;
-                } else {
-                    board.displayShips[y][x] = "X";
-                    return 1;
                 }
+            } else {
+                return -1; //already hit
             }
-        } else {
-            return -1;
+        } catch (IndexOutOfBoundsException e) {
+            return -2; //invalid coords
         }
     }
 }
