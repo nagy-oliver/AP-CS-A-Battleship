@@ -8,6 +8,7 @@ import com.compsci.Utils;
 
 import java.io.*; 
 import org.slf4j.*;
+import org.slf4j.helpers.Util;
 
 public class GameClient extends Socket {
     // coms
@@ -72,7 +73,7 @@ public class GameClient extends Socket {
                             case "START":
                                 started = true;
                                 Utils.Clear();
-                                System.out.println("Starting game! Random selected player to start: " + splitPacket[1] + " (0-Server, 1-Client)");
+                                System.out.println("Starting game! Random selected player to start: " + splitPacket[1]);
                                 okFlag = true;
                             case "REQ_CONF":
                                 localConfig = new Config();
@@ -93,6 +94,12 @@ public class GameClient extends Socket {
                             case "INV_BOARD":
                                 System.out.println("Your board doesnt match the config requirements!");
                                 break;
+                            case "MSG":
+                                System.out.println(data.substring(3));
+                                break;
+                            case "CLEAR":
+                                Utils.Clear();
+                                break;
                         }
                     } catch (EOFException e) { } catch (IOException e) { } 
                 }
@@ -109,6 +116,9 @@ public class GameClient extends Socket {
                         if (a == null) continue;
                         
                         // logic
+                        System.out.println(a);
+                        System.out.print("");
+                        System.out.print(">: ");
                      
                     } catch (IOException e) { } catch (ClassNotFoundException e) { } 
                 }
@@ -123,9 +133,8 @@ public class GameClient extends Socket {
     void EnterCommandLoop() throws IOException {
         // Enter command loop
         Scanner input = new Scanner(System.in);
+        System.out.print(">: ");
         while(true) {
-            System.out.print(">: ");
-            
             String data = input.nextLine();
             if (data == null) continue;
             String[] splitCommand = data.split(" ");
@@ -133,19 +142,18 @@ public class GameClient extends Socket {
             // Handle data logic 
             switch(splitCommand[0]) {
                 case "move":
+                    System.out.println(data);
                     if (started) {
-                        if (move == 1) {
-                            out.println(data); // relay
-                        } else {
-                            System.out.println("It is not your turn to play yet");
-                        }
+                        out.println(data); // relay
                     }
                     break;
                 case "ok":
-                    okFlag = true;
+                    out.println("ok");
                     Utils.Clear();
                     break;
             }
+
+            System.out.print(">: ");
         }
     }
 }

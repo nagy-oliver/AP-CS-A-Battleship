@@ -161,28 +161,46 @@ public class GameServer extends ServerSocket {
             switch(splitCommand[0]) {
                 case "move":
                     if(move == Player.SERVER) {
+                        Utils.Clear();
+                        System.out.println("Moved on " + splitCommand[1] + " " + splitCommand[2]);
                         int response = clientPlayer.move(Integer.parseInt(splitCommand[1]), Integer.parseInt(splitCommand[2]));
                         System.out.println(clientPlayer.board);
                         switch (response) {
                             case 0:
                                 System.out.println("You missed!");
                                 System.out.println("It's opponents' turn now");
+                                out.println("CLEAR");
                                 os.writeUnshared(clientPlayer.board); // send state
+                                os.flush();
                                 move = Player.CLIENT;
                                 break;
                             case 1:
                                 System.out.println("You hit a ship!");
                                 System.out.println("It's your turn");
+                                out.println("CLEAR");
                                 os.writeUnshared(clientPlayer.board); // send state
+                                os.flush();
                                 break;
                             case 2:
                                 System.out.println("You sunk a ship!");
                                 System.out.println("It's opponents' turn now");
+                                out.println("CLEAR");
                                 os.writeUnshared(clientPlayer.board); // send state
+                                os.flush();
                                 move = Player.CLIENT;
+                                break;
+                            case 3:
+                                out.println("MSG Game ended! You have won.");
+                                System.out.println("Game ended! You have lost.");
+                                out.println("TERM 1");
+                                System.exit(1);
                                 break;
                             case -1:
                                 System.out.println("This place was already hit!");
+                                System.out.println("Try again");
+                                break;
+                            case -2:
+                                System.out.println("Out of bounds!");
                                 System.out.println("Try again");
                                 break;
                             default:
@@ -191,9 +209,6 @@ public class GameServer extends ServerSocket {
                                 break;
                         }
                     } else {
-                        
-                    }
-                    else {
                         System.out.println("It is opponent's turn now. Wait...");
                     }
                     break;
@@ -201,14 +216,14 @@ public class GameServer extends ServerSocket {
                     Utils.Clear();
                     move = ((int) Math.round(Math.random()) == 0 ? Player.SERVER : Player.CLIENT);
                     out.println("START " + move);
-                    System.out.println("Starting game! Random selected player to start: " + move.getValue() + " (0-Server, 1-Client)");
+                    System.out.println("Starting game! Random selected player to start: " + move);
                     serverPlayer = new Game(localConfig, placementClient);
                     clientPlayer = new Game(localConfig, placementServer);
 
                     // State management
                     switch(move) {
-                        case SERVER: System.out.println(serverPlayer.board.toString()); os.writeUnshared(serverPlayer.board); break;
-                        case CLIENT: System.out.println(clientPlayer.board.toString()); os.writeUnshared(clientPlayer.board); break;
+                        case SERVER: System.out.println(serverPlayer.board.toString()); os.writeUnshared(serverPlayer.board); os.flush(); break;
+                        case CLIENT: System.out.println(clientPlayer.board.toString()); os.writeUnshared(clientPlayer.board); os.flush(); break;
                     }
                     
                     break;
@@ -223,6 +238,15 @@ public class GameServer extends ServerSocket {
                     out.println("TERM 1");
                     System.out.println("Goodbye");
                     System.exit(1);
+                    break;
+                case "ok":
+                    System.out.println("ok registered by server");
+                    Utils.Clear();
+                    if (move == Player.CLIENT) {
+                        System.out.println(serverPlayer.board);
+                    } else {
+                        System.out.println(clientPlayer.board);
+                    }
                     break;
 
             }
@@ -240,48 +264,70 @@ public class GameServer extends ServerSocket {
                         if (data.equals(null)) continue;
 
                         String[] splitCommand = data.split(" ");
-                        // Handle data logic 
-                        switch(data) {
-                            case "move":
-                                if(move == 0) {
-                                    int response = clientPlayer.move(Integer.parseInt(splitCommand[1]), Integer.parseInt(splitCommand[2]));
-                                    System.out.println(clientPlayer.board);
-                                    switch (response) {
-                                        case 0:
-                                            System.out.println("You missed!");
-                                            System.out.println("It's opponents' turn now");
-                                            move = 0;
-                                            break;
-                                        case 1:
-                                            System.out.println("You hit a ship!");
-                                            System.out.println("It's your turn");
-                                            break;
-                                        case 2:
-                                            System.out.println("You sunk a ship!");
-                                            System.out.println("It's opponents' turn now");
-                                            move = 0;
-                                            break;
-                                        case -1:
-                                            System.out.println("This place was already hit!");
-                                            System.out.println("Try again");
-                                            break;
-                                        case -2:
-                                            System.out.println("The coordinates entered are not valid!");
-                                            System.out.println("Try again");
-                                        default:
-                                            System.out.println("An error occured");
-                                            System.exit(1);
-                                            break;
+                        // Handle data logic
+
+                            switch(splitCommand[0]) {
+                                case "move":
+                                    if(move == Player.CLIENT) {
+                                        out.println("CLEAR");
+                                        out.println("MSG Moved on " + splitCommand[1] + " " + splitCommand[2]);
+                                        int response = serverPlayer.move(Integer.parseInt(splitCommand[1]), Integer.parseInt(splitCommand[2]));
+                                        os.writeUnshared(serverPlayer.board);
+                                        os.flush();
+                                        switch (response) {
+                                            case 0:
+                                                out.println("MSG You missed!");
+                                                out.println("MSG It's opponents' turn now");
+                                                Utils.Clear();
+                                                System.out.println(serverPlayer.board);
+                                                move = Player.SERVER;
+                                                break;
+                                            case 1:
+                                                out.println("MSG You hit a ship!");
+                                                out.println("MSG It's your turn");
+                                                Utils.Clear();
+                                                System.out.println(serverPlayer.board);
+                                                break;
+                                            case 2:
+                                                out.println("MSG You sunk a ship!");
+                                                out.println("MSG It's opponents' turn now");
+                                                Utils.Clear();
+                                                System.out.println(serverPlayer.board);
+                                                move = Player.SERVER;
+                                                break;
+                                            case 3:
+                                                out.println("MSG Game ended! You have lost.");
+                                                System.out.println("Game ended! You have won.");
+                                                out.println("TERM 1");
+                                                System.exit(1);
+                                                break;
+                                            case -1:
+                                                out.println("MSG This place was already hit!");
+                                                out.println("MSG Try again");
+                                                break;
+                                            case -2:
+                                                out.println("MSG The coordinates entered are not valid!");
+                                                out.println("MSG Try again");
+                                            default:
+                                                out.println("MSG An error occured");
+                                                System.exit(1);
+                                                break;
+                                        }
+                                    } else {
+                                        out.println("MSG It is opponent's turn now. Wait...");
                                     }
-                                } else {
-                                    System.out.println("It is opponent's turn now. Wait...");
-                                }
-                                break;
-                            case "GET_MOVE":
-                                out.println(); // Drop command observer (if needed, else no effect)
-                                out.println(move);
-                                break;
-                        }
+                                    break;
+                                case "ok":
+                                    if (move == Player.SERVER) {
+                                        os.writeUnshared(clientPlayer.board);
+                                        os.flush();
+                                    } else {
+                                        os.writeUnshared(serverPlayer.board);
+                                        os.flush();
+                                    }
+                                    break;
+                
+                            }
                     } catch (IOException e) { }
                 }
             }
@@ -320,7 +366,7 @@ class Game {
 
     public int move(int x, int y) {
         try {
-            if(board.displayShips[y][x] == "·") {
+            if(board.displayShips[y][x].equals("·")) {
                 if(board.myShips[y][x] == 0) {
                     board.displayShips[y][x] = "*";
                     return 0; //miss
@@ -333,6 +379,13 @@ class Game {
                                     board.displayShips[i][j] = "█";
                                 }
                             }
+                        }
+                        int sunkCount = 0;
+                        for(int i : amountHit) {
+                            sunkCount += i;
+                        }
+                        if (sunkCount == config.ships) {
+                            return 3; //game done
                         }
                         return 2; //sunk
                     } else {
