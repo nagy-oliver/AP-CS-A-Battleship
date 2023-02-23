@@ -1,4 +1,4 @@
-# Grasp-Battleship
+# AP-CS-A-Battleship
 The battleship game using Java, allowing for multiplayer by running on local network
 
 ## How to play
