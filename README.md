@@ -1,7 +1,4 @@
 # Grasp-Battleship
-(Warning) The responses that game sends are not always working, so it might be a bit complicated to play
-
-## Short description
 The battleship game using Java, allowing for multiplayer by running on local network
 
 ## How to play
